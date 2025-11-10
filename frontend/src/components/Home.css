@@ -1,0 +1,90 @@
+body {
+  background-color: #f3f4f6;
+  font-family: Arial, sans-serif;
+}
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+.home-header {
+  background-color: #2e7d32;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Card Section */
+.home-card {
+  background-color: white;
+  max-width: 700px;
+  margin: 50px auto;
+  padding: 40px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #ddd;
+}
+
+.home-card h2 {
+  color: #2e7d32;
+  font-size: 1.6rem;
+  margin-bottom: 15px;
+}
+
+.home-card p {
+  color: #444;
+  line-height: 1.6;
+  font-size: 1rem;
+  margin-bottom: 25px;
+}
+
+/* Buttons */
+.home-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
+}
+
+.btn {
+  text-decoration: none;
+  padding: 12px 25px;
+  border-radius: 6px;
+  color: white;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.btn-green {
+  background-color: #2e7d32;
+}
+
+.btn-green:hover {
+  background-color: #256629;
+}
+
+.btn-blue {
+  background-color: #1976d2;
+}
+
+.btn-blue:hover {
+  background-color: #125ea3;
+}
+
+/* Footer */
+.home-footer {
+  margin-top: auto;
+  text-align: center;
+  padding: 15px;
+  background-color: #f1f1f1;
+  color: #555;
+  font-size: 0.9rem;
+  border-top: 1px solid #ddd;
+}
