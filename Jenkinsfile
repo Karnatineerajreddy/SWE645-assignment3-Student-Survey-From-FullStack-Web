@@ -1,41 +1,51 @@
 pipeline {
-  agent any
-  environment {
-    DOCKERHUB = credentials('dockerhub-creds') // set in Jenkins
-  }
-  stages {
-    stage('Checkout') {
-      steps { checkout scm }
+    agent any
+
+    environment {
+        DOCKER_USER = 'neerajreddy22'
+        BACKEND_IMAGE = "${DOCKER_USER}/swe645-backend"
+        FRONTEND_IMAGE = "${DOCKER_USER}/swe645-frontend"
     }
-    stage('Build Backend Image') {
-      steps {
-        sh 'docker build -t $DOCKERHUB_USR/swe645-backend:${BUILD_NUMBER} ./backend'
-        sh 'docker tag $DOCKERHUB_USR/swe645-backend:${BUILD_NUMBER} $DOCKERHUB_USR/swe645-backend:latest'
-      }
-    }
-    stage('Build Frontend Image') {
-      steps {
-        sh 'docker build -t $DOCKERHUB_USR/swe645-frontend:${BUILD_NUMBER} ./frontend'
-        sh 'docker tag $DOCKERHUB_USR/swe645-frontend:${BUILD_NUMBER} $DOCKERHUB_USR/swe645-frontend:latest'
-      }
-    }
-    stage('Push Images') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
-          sh 'echo $DOCKERHUB_PSW | docker login -u $DOCKERHUB_USR --password-stdin'
-          sh 'docker push $DOCKERHUB_USR/swe645-backend:latest'
-          sh 'docker push $DOCKERHUB_USR/swe645-frontend:latest'
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/karnatineerajreddy/SWE645-assignment3-Student-Survey-From-FullStack-Web.git'
+            }
         }
-      }
+
+        stage('Build Docker Images') {
+            steps {
+                sh 'docker build -t $BACKEND_IMAGE:latest ./backend'
+                sh 'docker build -t $FRONTEND_IMAGE:latest ./frontend'
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh '''
+                        echo $PASS | docker login -u $USER --password-stdin
+                        docker push $BACKEND_IMAGE:latest
+                        docker push $FRONTEND_IMAGE:latest
+                    '''
+                }
+            }
+        }
+
+        stage('Deploy to Rancher Kubernetes') {
+            steps {
+                withCredentials([file(credentialsId: 'rancher-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                    sh '''
+                        export KUBECONFIG=$KUBECONFIG_FILE
+                        kubectl apply -f kubernetes/namespace.yaml || true
+                        kubectl apply -f kubernetes/backend-deployment.yaml -n student-survey
+                        kubectl apply -f kubernetes/frontend-deployment.yaml -n student-survey
+                        kubectl rollout restart deployment/backend -n student-survey
+                        kubectl rollout restart deployment/frontend -n student-survey
+                    '''
+                }
+            }
+        }
     }
-    stage('Deploy to Kubernetes') {
-      steps {
-        // assumes kubeconfig available in Jenkins as credential or agent has kubectl
-        sh 'kubectl apply -f k8s/backend-deployment.yaml'
-        sh 'kubectl apply -f k8s/backend-service.yaml'
-        sh 'kubectl apply -f k8s/frontend-deployment.yaml'
-        sh 'kubectl apply -f k8s/frontend-service.yaml'
-      }
-    }
-  }
 }
