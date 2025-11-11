@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: survey-backend
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: survey-backend } }
+  template:
+    metadata: { labels: { app: survey-backend } }
+    spec:
+      containers:
+      - name: backend
+        image: <DOCKERHUB_USER>/swe645-backend:latest
+        ports: [{ containerPort: 8000 }]
+        env:
+        - name: DATABASE_URL
+          value: "sqlite:///./surveys.db"
+        volumeMounts:
+        - name: data
+          mountPath: /app
+      volumes: [{ name: data, emptyDir: {} }]

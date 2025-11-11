@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: survey-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: survey-frontend
+  template:
+    metadata:
+      labels:
+        app: survey-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: <dockerhub_user>/swe645-frontend:latest
+        ports:
+        - containerPort: 80

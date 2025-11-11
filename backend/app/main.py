@@ -116,3 +116,9 @@ def delete_survey(survey_id: int):
         session.delete(s)
         session.commit()
         return {"deleted": survey_id}
+@app.get("/")
+def read_root():
+    return {
+        "message": "Student Survey API is running 🎉",
+        "available_endpoints": ["/surveys/", "/surveys/{id}"],
+    }
