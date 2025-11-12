@@ -52,10 +52,10 @@ pipeline {
                         kubectl apply -f kubernetes/namespace.yaml || true
 
                         echo "Deploying backend..."
-                        kubectl apply -f kubernetes/backend-deployment.yaml -n student-survey
+                        kubectl apply -f k8s/backend-deployment.yaml -n student-survey
 
                         echo "Deploying frontend..."
-                        kubectl apply -f kubernetes/frontend-deployment.yaml -n student-survey
+                        kubectl apply -f k8s/frontend-deployment.yaml -n student-survey
 
                         echo "Restarting deployments..."
                         kubectl rollout restart deployment/backend -n student-survey
