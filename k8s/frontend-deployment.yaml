@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: <dockerhub_user>/swe645-frontend:latest
+        image: neerajreddy22/swe645-frontend:latest
         ports:
         - containerPort: 80
