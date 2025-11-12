@@ -52,9 +52,11 @@ pipeline {
 
                         echo "Deploying backend..."
                         kubectl apply -f k8s/backend-deployment.yaml -n default
+                        kubectl apply -f k8s/backend-service.yaml -n default
 
                         echo "Deploying frontend..."
                         kubectl apply -f k8s/frontend-deployment.yaml -n default
+                        kubectl apply -f k8s/frontend-service.yaml -n default
 
                         echo "Restarting deployments..."
                         kubectl rollout restart deployment/survey-backend -n default || true
