@@ -8,7 +8,8 @@ spec:
   selector:
     app: survey-frontend
   ports:
-  - port: 80
+  - name: http
+    port: 80
     targetPort: 80
-    nodePort: 31000
+    nodePort: 31000   # you can choose any port between 30000–32767
   type: NodePort
