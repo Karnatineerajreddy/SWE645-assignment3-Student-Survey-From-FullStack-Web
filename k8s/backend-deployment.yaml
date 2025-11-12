@@ -2,20 +2,42 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: survey-backend
+  labels:
+    app: survey-backend
 spec:
   replicas: 3
-  selector: { matchLabels: { app: survey-backend } }
+  selector:
+    matchLabels:
+      app: survey-backend
   template:
-    metadata: { labels: { app: survey-backend } }
+    metadata:
+      labels:
+        app: survey-backend
     spec:
       containers:
       - name: backend
         image: neerajreddy22/swe645-backend:latest
-        ports: [{ containerPort: 8000 }]
+        ports:
+        - containerPort: 8000
         env:
         - name: DATABASE_URL
           value: "sqlite:///./surveys.db"
-        volumeMounts:
-        - name: data
-          mountPath: /app
-      volumes: [{ name: data, emptyDir: {} }]
+        # Remove the volume mount unless you need persistent storage
+        # because it overrides /app (your code location)
+        # volumeMounts:
+        # - name: data
+        #   mountPath: /app
+        command: ["uvicorn"]
+        args: ["app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+        readinessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /docs
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30

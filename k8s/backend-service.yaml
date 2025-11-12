@@ -2,11 +2,14 @@ apiVersion: v1
 kind: Service
 metadata:
   name: survey-backend
+  labels:
+    app: survey-backend
 spec:
   selector:
     app: survey-backend
   ports:
-    - protocol: TCP
-      port: 8000
-      targetPort: 8000
-  type: ClusterIP
+  - name: http
+    protocol: TCP
+    port: 8000          # internal cluster port
+    targetPort: 8000    # container port
+  type: ClusterIP 
