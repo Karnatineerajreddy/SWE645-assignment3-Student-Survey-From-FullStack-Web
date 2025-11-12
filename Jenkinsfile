@@ -22,8 +22,8 @@ pipeline {
             steps {
                 echo '🐳 Building Docker images...'
                 sh '''
-                    sudo docker build -t $BACKEND_IMAGE:latest ./backend
-                    sudo docker build -t $FRONTEND_IMAGE:latest ./frontend
+                    docker build -t $BACKEND_IMAGE:latest ./backend
+                    docker build -t $FRONTEND_IMAGE:latest ./frontend
                 '''
             }
         }
