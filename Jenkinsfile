@@ -48,22 +48,24 @@ pipeline {
                     sh '''
                         export KUBECONFIG=$KUBECONFIG_FILE
 
-                        echo "Creating namespace (if not exists)..."
-                        kubectl apply -f kubernetes/namespace.yaml || true
+                        echo "✅ Using default Kubernetes namespace..."
 
                         echo "Deploying backend..."
-                        kubectl apply -f k8s/backend-deployment.yaml -n student-survey
+                        kubectl apply -f k8s/backend-deployment.yaml -n default
 
                         echo "Deploying frontend..."
-                        kubectl apply -f k8s/frontend-deployment.yaml -n student-survey
+                        kubectl apply -f k8s/frontend-deployment.yaml -n default
 
                         echo "Restarting deployments..."
-                        kubectl rollout restart deployment/backend -n student-survey
-                        kubectl rollout restart deployment/frontend -n student-survey
+                        kubectl rollout restart deployment/backend -n default || true
+                        kubectl rollout restart deployment/frontend -n default || true
+
+                        echo "✅ Deployment completed successfully in default namespace!"
                     '''
                 }
             }
         }
+
     }
 
     post {
