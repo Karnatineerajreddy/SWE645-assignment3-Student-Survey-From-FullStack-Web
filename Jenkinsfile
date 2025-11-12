@@ -57,8 +57,8 @@ pipeline {
                         kubectl apply -f k8s/frontend-deployment.yaml -n default
 
                         echo "Restarting deployments..."
-                        kubectl rollout restart deployment/backend -n default || true
-                        kubectl rollout restart deployment/frontend -n default || true
+                        kubectl rollout restart deployment/survey-backend -n default || true
+                        kubectl rollout restart deployment/survey-frontend -n default || true
 
                         echo "✅ Deployment completed successfully in default namespace!"
                     '''
