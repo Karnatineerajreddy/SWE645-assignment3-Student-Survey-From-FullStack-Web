@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://100.30.1.131:30080",  // or use env variable
+  baseURL: "http://survey-backend:8000",     // internal DNS service name
 });
 
 export default api;
