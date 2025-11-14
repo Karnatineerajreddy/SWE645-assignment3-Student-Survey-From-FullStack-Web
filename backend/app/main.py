@@ -1,14 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel, Session, select, create_engine, Field
+from sqlmodel import SQLModel, Session, select, Field
 from typing import Optional, List
 from datetime import datetime, date
 
 # -----------------------------
-# Database Setup
+# Database Setup (PostgreSQL via RDS)
 # -----------------------------
-DATABASE_URL = "sqlite:///./surveys.db"
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+from database import engine
 
 
 # -----------------------------
@@ -57,8 +56,7 @@ class SurveyUpdate(SQLModel):
 app = FastAPI(title="Student Survey API")
 
 allowed_origins = [
-    "http://100.30.1.131:31000",   # React frontend (NodePort)
-    "*",  # optionally allow all (you can remove this in production)
+    "*",
 ]
 
 app.add_middleware(
@@ -97,10 +95,7 @@ def parse_date(value):
 @app.post("/surveys/", response_model=Survey)
 def create_survey(survey: SurveyBase):
     with Session(engine) as session:
-
         db_survey = Survey(**survey.dict())
-
-        # Standardize date_of_survey
         db_survey.date_of_survey = parse_date(db_survey.date_of_survey)
 
         session.add(db_survey)
@@ -133,7 +128,6 @@ def update_survey(survey_id: int, updated: SurveyUpdate):
 
         update_data = updated.dict(exclude_unset=True)
 
-        # Fix date for update
         if "date_of_survey" in update_data:
             update_data["date_of_survey"] = parse_date(update_data["date_of_survey"])
 
@@ -160,4 +154,4 @@ def delete_survey(survey_id: int):
 
 @app.get("/")
 def root():
-    return {"message": "Survey API running!"}
+    return {"message": "Survey API running with PostgreSQL!"}
