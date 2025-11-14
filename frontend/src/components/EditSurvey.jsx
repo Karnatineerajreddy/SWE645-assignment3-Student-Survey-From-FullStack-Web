@@ -9,7 +9,8 @@ export default function EditSurvey() {
   const [form, setForm] = useState(null);
   const [message, setMessage] = useState("");
 
-  const API_BASE = "http://100.30.1.131:8000";   // Updated backend IP
+  // ✔ Use the NodePort exposed backend
+  const API_BASE = "http://100.30.1.131:30080";
 
   useEffect(() => {
     async function loadSurvey() {

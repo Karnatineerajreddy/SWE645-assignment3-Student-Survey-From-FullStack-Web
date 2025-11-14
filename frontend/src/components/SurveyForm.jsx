@@ -1,10 +1,14 @@
 import { useState } from "react";
-import API from "../api";
+import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import "./SurveyForm.css";
 
 export default function SurveyForm() {
   const navigate = useNavigate();
+
+  // ✔ Backend exposed via NodePort
+  const API_BASE = "http://100.30.1.131:30080";
+
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -20,10 +24,12 @@ export default function SurveyForm() {
     likelihood: "",
     comments: ""
   });
+
   const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+
     if (type === "checkbox") {
       setForm((prev) => ({
         ...prev,
@@ -39,7 +45,11 @@ export default function SurveyForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await API.post("/surveys/", { ...form, liked_most: form.liked_most.join(", ") });
+      await axios.post(`${API_BASE}/surveys/`, {
+        ...form,
+        liked_most: form.liked_most.join(", ")
+      });
+
       setMessage("✅ Survey submitted successfully!");
       setTimeout(() => navigate("/"), 2000);
     } catch (err) {
@@ -82,7 +92,14 @@ export default function SurveyForm() {
           <legend>How did you become interested in the university?</legend>
           {["Friends", "Television", "Internet", "Other"].map((v) => (
             <label key={v}>
-              <input type="radio" name="became_interested" value={v} onChange={handleChange} required /> {v}
+              <input
+                type="radio"
+                name="became_interested"
+                value={v}
+                onChange={handleChange}
+                required
+              />{" "}
+              {v}
             </label>
           ))}
         </fieldset>
@@ -105,7 +122,9 @@ export default function SurveyForm() {
 
         {message && <div className="result">{message}</div>}
 
-        <button type="button" onClick={() => navigate("/")} className="back-btn">← Back to Home</button>
+        <button type="button" onClick={() => navigate("/")} className="back-btn">
+          ← Back to Home
+        </button>
       </form>
     </div>
   );
