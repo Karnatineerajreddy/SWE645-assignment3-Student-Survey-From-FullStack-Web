@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: survey-backend
-  labels:
-    app: survey-backend
 spec:
-  replicas: 3
+  replicas: 1        # Important for SQLite
   selector:
     matchLabels:
       app: survey-backend
@@ -15,22 +13,14 @@ spec:
         app: survey-backend
     spec:
       containers:
-      - name: backend
-        image: neerajreddy22/swe645-backend:latest
+      - name: survey-backend
+        image: YOUR_BACKEND_IMAGE:latest
         ports:
         - containerPort: 8000
-        env:
-        - name: DATABASE_URL
-          value: "sqlite:///./surveys.db"
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 8000
-          initialDelaySeconds: 20
-          periodSeconds: 30
+        volumeMounts:
+        - name: survey-storage
+          mountPath: /app/data
+      volumes:
+      - name: survey-storage
+        persistentVolumeClaim:
+          claimName: survey-pvc
