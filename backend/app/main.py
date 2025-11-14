@@ -40,6 +40,7 @@ app.add_middleware(
         "http://localhost:5173"
     ],  # your React dev URLs
     allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
