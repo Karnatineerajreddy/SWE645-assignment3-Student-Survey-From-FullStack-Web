@@ -8,7 +8,8 @@ export default function SurveyForm() {
   const navigate = useNavigate();
 
   // 🔥 DIRECT BACKEND URL (NO api.js)
-  const API_URL = "http://100.30.1.131:30080/surveys/";
+  const API_URL = "http://100.30.1.131:30080/api/surveys/";
+
 
   const [form, setForm] = useState({
     first_name: "",
