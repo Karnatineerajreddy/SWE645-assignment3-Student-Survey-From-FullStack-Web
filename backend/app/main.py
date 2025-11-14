@@ -102,7 +102,7 @@ def delete_survey(survey_id: int):
         return {"deleted": survey_id}
     
 @app.put("/surveys/{survey_id}", response_model=Survey)
-def update_survey(survey_id: int, updated: Survey):
+def update_survey(survey_id: int, updated: SurveyBase):
     """
     Update a survey by ID.
     """
