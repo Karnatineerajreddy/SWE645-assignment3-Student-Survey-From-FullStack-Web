@@ -1,15 +1,11 @@
 // src/components/SurveyForm.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import API from "./api.js";            // ✅ use API.js (not axios directly)
 import "./SurveyForm.css";
 
 export default function SurveyForm() {
   const navigate = useNavigate();
-
-  // 🔥 DIRECT BACKEND URL (NO api.js)
-  const API_URL = "http://100.30.1.131:30080/api/surveys/";
-
 
   const [form, setForm] = useState({
     first_name: "",
@@ -49,7 +45,7 @@ export default function SurveyForm() {
     e.preventDefault();
 
     try {
-      await axios.post(API_URL, {
+      await API.post("/surveys/", {
         ...form,
         liked_most: form.liked_most.join(", "),
       });
