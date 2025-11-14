@@ -9,12 +9,11 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
-                echo '📦 Checking out code from GitHub (main branch)...'
+                echo '📦 Checking out code from GitHub...'
                 git branch: 'main', url: 'https://github.com/karnatineerajreddy/SWE645-assignment3-Student-Survey-From-FullStack-Web.git'
-                // OR: use checkout scm (better if Jenkins job already pulls correct branch)
-                // checkout scm
             }
         }
 
@@ -22,8 +21,11 @@ pipeline {
             steps {
                 echo '🐳 Building Docker images...'
                 sh '''
+                    # Build backend normally
                     docker build -t $BACKEND_IMAGE:latest ./backend
-                    docker build -t $FRONTEND_IMAGE:latest ./frontend
+
+                    # FORCE frontend rebuild (fixes 127.0.0.1 caching issue)
+                    docker build --no-cache -t $FRONTEND_IMAGE:latest ./frontend
                 '''
             }
         }
@@ -48,8 +50,6 @@ pipeline {
                     sh '''
                         export KUBECONFIG=$KUBECONFIG_FILE
 
-                        echo "✅ Using default Kubernetes namespace..."
-
                         echo "Deploying backend..."
                         kubectl apply -f k8s/backend-deployment.yaml -n default
                         kubectl apply -f k8s/backend-service.yaml -n default
@@ -62,7 +62,7 @@ pipeline {
                         kubectl rollout restart deployment/survey-backend -n default || true
                         kubectl rollout restart deployment/survey-frontend -n default || true
 
-                        echo "✅ Deployment completed successfully in default namespace!"
+                        echo "✅ Deployment completed successfully!"
                     '''
                 }
             }
@@ -75,7 +75,7 @@ pipeline {
             echo '✅ SWE645 Deployment completed successfully!'
         }
         failure {
-            echo '❌ SWE645 Pipeline failed. Please check logs.'
+            echo '❌ SWE645 Pipeline failed. Check logs.'
         }
     }
 }
