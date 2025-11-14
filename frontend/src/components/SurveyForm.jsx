@@ -1,7 +1,7 @@
 // src/components/SurveyForm.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "./api.js";            // ✅ use API.js (not axios directly)
+import API from "../api.js";            // ✅ use API.js (not axios directly)
 import "./SurveyForm.css";
 
 export default function SurveyForm() {
