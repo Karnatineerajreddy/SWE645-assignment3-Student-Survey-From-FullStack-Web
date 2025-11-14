@@ -12,7 +12,7 @@ export default function EditSurvey() {
   useEffect(() => {
     async function loadSurvey() {
       try {
-        const res = await axios.get(`http://127.0.0.1:8000/surveys/${id}`);
+        const res = await axios.get("http://survey-backend:8000/surveys/");
         setForm(res.data);
       } catch (err) {
         console.error("Error loading survey:", err);
@@ -29,7 +29,7 @@ export default function EditSurvey() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://127.0.0.1:8000/surveys/${id}`, form);
+      await axios.put(`http://survey-backend:8000/surveys/${id}`, form);
       setMessage("✅ Survey updated successfully!");
       setTimeout(() => navigate("/surveys"), 1500);
     } catch (err) {

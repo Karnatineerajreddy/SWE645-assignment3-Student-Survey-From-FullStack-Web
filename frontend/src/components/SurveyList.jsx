@@ -11,7 +11,7 @@ export default function SurveyList() {
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/surveys/");
+        const res = await axios.get("http://survey-backend:8000/surveys/");
         setSurveys(res.data);
       } catch (err) {
         console.error("Error fetching surveys:", err);
@@ -25,7 +25,7 @@ export default function SurveyList() {
   const deleteSurvey = async (id) => {
     if (!window.confirm("Are you sure you want to delete this survey?")) return;
     try {
-      await axios.delete(`http://127.0.0.1:8000/surveys/${id}`);
+      await axios.delete(`http://survey-backend:8000/surveys/${id}`);
       setSurveys(surveys.filter((s) => s.id !== id)); // update UI
     } catch (err) {
       console.error("Error deleting survey:", err);
