@@ -19,7 +19,7 @@ export default function SurveyForm() {
     liked_most: [],
     became_interested: "",
     likelihood: "",
-    comments: ""
+    comments: "",
   });
 
   const [message, setMessage] = useState("");
@@ -37,7 +37,7 @@ export default function SurveyForm() {
     } else {
       setForm({
         ...form,
-        [name]: value ?? "",
+        [name]: value,
       });
     }
   };
@@ -46,15 +46,15 @@ export default function SurveyForm() {
     e.preventDefault();
 
     try {
-      await API.post("/surveys/", {
+      await API.post("/", {
         ...form,
-        liked_most: form.liked_most.join(", ")  // backend expects string
+        liked_most: form.liked_most.join(", "),
       });
 
       setMessage("✅ Survey submitted successfully!");
       setTimeout(() => navigate("/"), 2000);
     } catch (err) {
-      console.error("Submission Error:", err);
+      console.error("Error:", err);
       setMessage("❌ Failed to submit survey.");
     }
   };
@@ -67,14 +67,14 @@ export default function SurveyForm() {
 
       <form className="survey-form" onSubmit={handleSubmit}>
         <div className="grid">
-          <input name="first_name" value={form.first_name} placeholder="First Name *" onChange={handleChange} required />
-          <input name="last_name" value={form.last_name} placeholder="Last Name *" onChange={handleChange} required />
-          <input name="street_address" value={form.street_address} placeholder="Street Address *" onChange={handleChange} required />
-          <input name="city" value={form.city} placeholder="City *" onChange={handleChange} required />
-          <input name="state" value={form.state} placeholder="State *" onChange={handleChange} required />
-          <input name="zip" value={form.zip} placeholder="ZIP *" onChange={handleChange} required />
-          <input name="telephone" value={form.telephone} placeholder="Telephone *" onChange={handleChange} required />
-          <input name="email" type="email" value={form.email} placeholder="Email *" onChange={handleChange} required />
+          <input name="first_name" value={form.first_name} onChange={handleChange} placeholder="First Name *" required />
+          <input name="last_name" value={form.last_name} onChange={handleChange} placeholder="Last Name *" required />
+          <input name="street_address" value={form.street_address} onChange={handleChange} placeholder="Street Address *" required />
+          <input name="city" value={form.city} onChange={handleChange} placeholder="City *" required />
+          <input name="state" value={form.state} onChange={handleChange} placeholder="State *" required />
+          <input name="zip" value={form.zip} onChange={handleChange} placeholder="ZIP *" required />
+          <input name="telephone" value={form.telephone} onChange={handleChange} placeholder="Telephone *" required />
+          <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email *" required />
         </div>
 
         <label>Date of Survey *</label>
@@ -84,7 +84,13 @@ export default function SurveyForm() {
           <legend>What did you like most?</legend>
           {["Students", "Location", "Campus", "Atmosphere", "Dorm Rooms", "Sports"].map((v) => (
             <label key={v}>
-              <input type="checkbox" value={v} checked={form.liked_most.includes(v)} onChange={handleChange} /> {v}
+              <input
+                type="checkbox"
+                value={v}
+                checked={form.liked_most.includes(v)}
+                onChange={handleChange}
+              />
+              {v}
             </label>
           ))}
         </fieldset>
@@ -100,12 +106,13 @@ export default function SurveyForm() {
                 checked={form.became_interested === v}
                 onChange={handleChange}
                 required
-              /> {v}
+              />
+              {v}
             </label>
           ))}
         </fieldset>
 
-        <label>Recommend this school?</label>
+        <label>Recommendation likelihood *</label>
         <select name="likelihood" value={form.likelihood} onChange={handleChange} required>
           <option value="">Select</option>
           <option>Very Likely</option>
@@ -113,17 +120,17 @@ export default function SurveyForm() {
           <option>Unlikely</option>
         </select>
 
-        <label>Additional Comments</label>
+        <label>Comments</label>
         <textarea name="comments" rows="3" value={form.comments} onChange={handleChange} />
 
         <div className="buttons">
-          <button type="submit" className="btn btn-green">Submit</button>
-          <button type="reset" className="btn btn-red">Cancel</button>
+          <button className="btn btn-green" type="submit">Submit</button>
+          <button className="btn btn-red" type="reset">Cancel</button>
         </div>
 
         {message && <div className="result">{message}</div>}
 
-        <button type="button" onClick={() => navigate("/")} className="back-btn">← Back to Home</button>
+        <button className="back-btn" type="button" onClick={() => navigate("/")}>← Back</button>
       </form>
     </div>
   );
