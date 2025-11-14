@@ -8,10 +8,13 @@ export default function SurveyList() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // 🔥 Use your backend LoadBalancer public IP
+  const API_BASE = "http://100.30.1.131:8000";
+
   useEffect(() => {
     async function loadData() {
       try {
-        const res = await axios.get("http://survey-backend:8000/surveys/");
+        const res = await axios.get(`${API_BASE}/surveys/`);
         setSurveys(res.data);
       } catch (err) {
         console.error("Error fetching surveys:", err);
@@ -24,9 +27,10 @@ export default function SurveyList() {
 
   const deleteSurvey = async (id) => {
     if (!window.confirm("Are you sure you want to delete this survey?")) return;
+
     try {
-      await axios.delete(`http://survey-backend:8000/surveys/${id}`);
-      setSurveys(surveys.filter((s) => s.id !== id)); // update UI
+      await axios.delete(`${API_BASE}/surveys/${id}`);
+      setSurveys(surveys.filter((s) => s.id !== id));
     } catch (err) {
       console.error("Error deleting survey:", err);
     }
