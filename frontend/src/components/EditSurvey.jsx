@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import API from "../api.js";
+import API from "./api.js";
 import "./SurveyForm.css";
 
 export default function EditSurvey() {
