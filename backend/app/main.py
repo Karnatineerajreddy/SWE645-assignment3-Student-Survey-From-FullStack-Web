@@ -7,7 +7,7 @@ from datetime import datetime, date
 # -----------------------------
 # Database Setup
 # -----------------------------
-DATABASE_URL = "sqlite:////app/data/surveys.db"
+DATABASE_URL = "sqlite:///./surveys.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
 
