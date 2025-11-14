@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api";
+import API from "../api.js";
 import "./SurveyForm.css";
 
 export default function SurveyForm() {
@@ -34,12 +34,10 @@ export default function SurveyForm() {
           ? [...prev.liked_most, value]
           : prev.liked_most.filter((v) => v !== value),
       }));
-    } else {
-      setForm({
-        ...form,
-        [name]: value,
-      });
+      return;
     }
+
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -54,7 +52,7 @@ export default function SurveyForm() {
       setMessage("✅ Survey submitted successfully!");
       setTimeout(() => navigate("/"), 2000);
     } catch (err) {
-      console.error("Error:", err);
+      console.error("Submit Error:", err);
       setMessage("❌ Failed to submit survey.");
     }
   };
@@ -84,12 +82,7 @@ export default function SurveyForm() {
           <legend>What did you like most?</legend>
           {["Students", "Location", "Campus", "Atmosphere", "Dorm Rooms", "Sports"].map((v) => (
             <label key={v}>
-              <input
-                type="checkbox"
-                value={v}
-                checked={form.liked_most.includes(v)}
-                onChange={handleChange}
-              />
+              <input type="checkbox" value={v} checked={form.liked_most.includes(v)} onChange={handleChange} />
               {v}
             </label>
           ))}

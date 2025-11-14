@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useNavigate, useParams } from "react-router-dom";
+import API from "../api.js";
 import "./SurveyForm.css";
-import API from "../api";
 
 export default function EditSurvey() {
   const { id } = useParams();
@@ -10,59 +9,123 @@ export default function EditSurvey() {
   const [form, setForm] = useState(null);
   const [message, setMessage] = useState("");
 
-  // ✔ Use the NodePort exposed backend
-  const API_BASE = "http://100.30.1.131:30080";
-
   useEffect(() => {
-    async function loadSurvey() {
+    async function load() {
       try {
         const res = await API.get(`/surveys/${id}`);
-        await API.put(`/surveys/${id}`, form);
+        const data = res.data;
 
-        setForm(res.data);
+        data.liked_most = data.liked_most ? data.liked_most.split(", ").map((v) => v.trim()) : [];
+
+        setForm(data);
       } catch (err) {
-        console.error("Error loading survey:", err);
-        setMessage("❌ Failed to load survey.");
+        console.error("Load Error:", err);
       }
     }
-    loadSurvey();
+    load();
   }, [id]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+
+    if (type === "checkbox") {
+      setForm((prev) => ({
+        ...prev,
+        liked_most: checked
+          ? [...prev.liked_most, value]
+          : prev.liked_most.filter((v) => v !== value),
+      }));
+      return;
+    }
+
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.put(`${API_BASE}/surveys/${id}`, form);
-      setMessage("✅ Survey updated successfully!");
-      setTimeout(() => navigate("/surveys"), 1500);
+      await API.put(`/surveys/${id}`, {
+        ...form,
+        liked_most: form.liked_most.join(", "),
+      });
+
+      setMessage("✅ Updated successfully!");
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
-      console.error("Error updating survey:", err);
-      setMessage("❌ Failed to update survey.");
+      console.error("Update Error:", err);
+      setMessage("❌ Failed to update.");
     }
   };
 
-  if (!form) return <p>Loading survey...</p>;
+  if (!form) return <p>Loading...</p>;
 
   return (
     <div className="survey-container">
-      <div className="survey-header">
-        <h2>Edit Survey – #{id}</h2>
-      </div>
+      <h2>Edit Survey</h2>
 
       <form className="survey-form" onSubmit={handleSubmit}>
-        <input name="first_name" value={form.first_name} onChange={handleChange} required />
-        <input name="last_name" value={form.last_name} onChange={handleChange} required />
-        <input name="email" value={form.email} onChange={handleChange} required />
-        <input name="city" value={form.city} onChange={handleChange} required />
-        <input name="state" value={form.state} onChange={handleChange} required />
-        <input name="telephone" value={form.telephone} onChange={handleChange} required />
+        <div className="grid">
+          <input name="first_name" value={form.first_name} onChange={handleChange} required />
+          <input name="last_name" value={form.last_name} onChange={handleChange} required />
+          <input name="street_address" value={form.street_address} onChange={handleChange} required />
+          <input name="city" value={form.city} onChange={handleChange} required />
+          <input name="state" value={form.state} onChange={handleChange} required />
+          <input name="zip" value={form.zip} onChange={handleChange} required />
+          <input name="telephone" value={form.telephone} onChange={handleChange} required />
+          <input name="email" type="email" value={form.email} onChange={handleChange} required />
+        </div>
+
+        <label>Date of Survey</label>
+        <input type="date" name="date_of_survey" value={form.date_of_survey} onChange={handleChange} required />
+
+        <fieldset>
+          <legend>What did you like most?</legend>
+          {["Students", "Location", "Campus", "Atmosphere", "Dorm Rooms", "Sports"].map((v) => (
+            <label key={v}>
+              <input
+                type="checkbox"
+                value={v}
+                checked={form.liked_most.includes(v)}
+                onChange={handleChange}
+              />
+              {v}
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset>
+          <legend>How did you become interested?</legend>
+          {["Friends", "Television", "Internet", "Other"].map((v) => (
+            <label key={v}>
+              <input
+                type="radio"
+                name="became_interested"
+                value={v}
+                checked={form.became_interested === v}
+                onChange={handleChange}
+                required
+              />
+              {v}
+            </label>
+          ))}
+        </fieldset>
+
+        <label>Recommendation likelihood</label>
+        <select name="likelihood" value={form.likelihood} onChange={handleChange} required>
+          <option value="">Select</option>
+          <option>Very Likely</option>
+          <option>Likely</option>
+          <option>Unlikely</option>
+        </select>
+
+        <label>Comments</label>
         <textarea name="comments" value={form.comments} onChange={handleChange} rows="3" />
 
-        <button type="submit" className="btn btn-edit">Save Changes</button>
+        <div className="buttons">
+          <button className="btn btn-green" type="submit">Update</button>
+          <button className="btn btn-red" type="button" onClick={() => navigate("/")}>Cancel</button>
+        </div>
 
         {message && <div className="result">{message}</div>}
       </form>
