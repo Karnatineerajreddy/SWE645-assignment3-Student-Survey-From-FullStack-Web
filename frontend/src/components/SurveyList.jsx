@@ -7,7 +7,6 @@ export default function EditSurvey() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // 🔥 Use your backend LoadBalancer IP
   const API_BASE = "http://100.30.1.131:8000";
 
   const [form, setForm] = useState({
@@ -30,7 +29,7 @@ export default function EditSurvey() {
   const [message, setMessage] = useState("");
 
   // ============================
-  // Load survey by ID for editing
+  // Load survey for editing
   // ============================
   useEffect(() => {
     async function fetchSurvey() {
@@ -40,7 +39,18 @@ export default function EditSurvey() {
 
         setForm({
           ...data,
-          liked_most: data.liked_most ? data.liked_most.split(", ") : [],
+
+          // Fix: backend may return timestamp => convert to YYYY-MM-DD
+          date_of_survey: data.date_of_survey
+            ? data.date_of_survey.split("T")[0]
+            : "",
+
+          // Fix: ensure liked_most is ALWAYS an array
+          liked_most: Array.isArray(data.liked_most)
+            ? data.liked_most
+            : data.liked_most
+            ? data.liked_most.split(", ").map((x) => x.trim())
+            : [],
         });
       } catch (err) {
         console.error("Error loading survey:", err);
@@ -53,7 +63,7 @@ export default function EditSurvey() {
   }, [id]);
 
   // ============================
-  // Handle field updates
+  // Handle input changes
   // ============================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -79,6 +89,8 @@ export default function EditSurvey() {
     try {
       await axios.put(`${API_BASE}/surveys/${id}`, {
         ...form,
+
+        // Fix: send CSV string instead of array
         liked_most: form.liked_most.join(", "),
       });
 
@@ -87,6 +99,11 @@ export default function EditSurvey() {
       setTimeout(() => navigate("/surveys"), 1500);
     } catch (err) {
       console.error("Update failed:", err);
+
+      if (err.response?.data) {
+        console.error("Backend says:", err.response.data);
+      }
+
       setMessage("❌ Failed to update survey.");
     }
   };
@@ -112,7 +129,13 @@ export default function EditSurvey() {
         </div>
 
         <label>Date of Survey *</label>
-        <input type="date" name="date_of_survey" value={form.date_of_survey} onChange={handleChange} required />
+        <input
+          type="date"
+          name="date_of_survey"
+          value={form.date_of_survey}
+          onChange={handleChange}
+          required
+        />
 
         <fieldset>
           <legend>What did you like most about the campus?</legend>
