@@ -102,16 +102,14 @@ def delete_survey(survey_id: int):
         return {"deleted": survey_id}
     
 @app.put("/surveys/{survey_id}", response_model=Survey)
-def update_survey(survey_id: int, updated: SurveyBase):
-    """
-    Update a survey by ID.
-    """
+def update_survey(survey_id: int, updated: SurveyUpdate):
     with Session(engine) as session:
         record = session.get(Survey, survey_id)
-        if not record:
-            raise HTTPException(404, "Survey not found")
 
-        update_data = updated.dict(exclude_unset=True)
+        if not record:
+            raise HTTPException(status_code=404, detail="Survey not found")
+
+        update_data = updated.dict(exclude_unset=True)   # <-- IMPORTANT
 
         for key, value in update_data.items():
             setattr(record, key, value)
@@ -120,6 +118,7 @@ def update_survey(survey_id: int, updated: SurveyBase):
         session.commit()
         session.refresh(record)
         return record
+
 
 
 @app.get("/")
