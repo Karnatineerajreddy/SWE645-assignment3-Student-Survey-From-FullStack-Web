@@ -31,16 +31,13 @@ class Survey(SurveyBase, table=True):
 
 app = FastAPI(title="Student Survey API")
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://100.30.1.131:31000",  # your frontend
-        "http://localhost:31000",
-        "http://127.0.0.1:31000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],          # Allow ALL origins
+    allow_credentials=False,      # MUST be false if allow_origins="*"
+    allow_methods=["*"],          # Allow all HTTP verbs
+    allow_headers=["*"],          # Allow all headers
 )
 
 
