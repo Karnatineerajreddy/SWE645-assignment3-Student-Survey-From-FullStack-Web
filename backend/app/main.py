@@ -18,7 +18,6 @@ class SurveyBase(SQLModel):
     zip: str
     telephone: str
     email: str
-    # ✅ Made optional so SQLite accepts null or empty values
     date_of_survey: Optional[date] = None
     liked_most: Optional[str] = None
     became_interested: Optional[str] = None
@@ -32,17 +31,18 @@ class Survey(SurveyBase, table=True):
 
 app = FastAPI(title="Student Survey API")
 
-# ---- CORS setup ----
+# ---- FIXED CORS ----
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://127.0.0.1:5173",
-        "http://localhost:5173"
-    ],  # your React dev URLs
+        "*",  # allow all for simplicity
+        "http://100.30.1.131:3000",   # your frontend VM / deployed UI
+        "http://localhost:5173",      # local dev
+        "http://127.0.0.1:5173"
+    ],
     allow_credentials=True,
-    allow_origins=["*"],
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 
@@ -56,7 +56,8 @@ def on_startup():
 @app.post("/surveys/", response_model=Survey)
 def create_survey(survey: Survey):
     with Session(engine) as session:
-        # ✅ Convert string date ("2025-11-10") → Python date
+
+        # Convert date string to Python date
         if isinstance(survey.date_of_survey, str):
             try:
                 survey.date_of_survey = datetime.strptime(
@@ -65,7 +66,7 @@ def create_survey(survey: Survey):
             except ValueError:
                 survey.date_of_survey = date.today()
 
-        # ✅ Default date if missing
+        # Default to today's date
         if not survey.date_of_survey:
             survey.date_of_survey = date.today()
 
@@ -97,8 +98,7 @@ def update_survey(survey_id: int, survey: Survey):
         if not existing:
             raise HTTPException(status_code=404, detail="Survey not found")
 
-        # ✅ Apply same fix here for safety
-        if not survey.date_of_survey or str(survey.date_of_survey).strip() == "":
+        if not survey.date_of_survey:
             survey.date_of_survey = date.today()
 
         survey.id = survey_id
@@ -117,6 +117,8 @@ def delete_survey(survey_id: int):
         session.delete(s)
         session.commit()
         return {"deleted": survey_id}
+
+
 @app.get("/")
 def read_root():
     return {
