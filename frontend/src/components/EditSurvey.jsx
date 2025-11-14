@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./SurveyForm.css";
+import API from "../api";
 
 export default function EditSurvey() {
   const { id } = useParams();
@@ -15,7 +16,9 @@ export default function EditSurvey() {
   useEffect(() => {
     async function loadSurvey() {
       try {
-        const res = await axios.get(`${API_BASE}/surveys/${id}`);
+        const res = await API.get(`/surveys/${id}`);
+        await API.put(`/surveys/${id}`, form);
+
         setForm(res.data);
       } catch (err) {
         console.error("Error loading survey:", err);

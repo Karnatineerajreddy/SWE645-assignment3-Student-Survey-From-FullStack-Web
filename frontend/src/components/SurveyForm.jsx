@@ -46,7 +46,7 @@ export default function SurveyForm() {
     e.preventDefault();
 
     try {
-      await API.post("/", {
+      await API.post("/surveys/", {
         ...form,
         liked_most: form.liked_most.join(", "),
       });
