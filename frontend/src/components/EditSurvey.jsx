@@ -12,7 +12,7 @@ export default function EditSurvey() {
   useEffect(() => {
     async function loadSurvey() {
       try {
-        const res = await axios.get("http://survey-backend:8000/surveys/");
+        const res = await axios.get(`http://survey-backend:8000/surveys/${id}`);
         setForm(res.data);
       } catch (err) {
         console.error("Error loading survey:", err);
