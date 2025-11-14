@@ -1,13 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API from "../api";
 import "./SurveyForm.css";
 
 export default function SurveyForm() {
   const navigate = useNavigate();
-
-  // ✔ Backend via NodePort
-  const API_BASE = "http://100.30.1.131:30080";
 
   const [form, setForm] = useState({
     first_name: "",
@@ -27,9 +24,6 @@ export default function SurveyForm() {
 
   const [message, setMessage] = useState("");
 
-  // ======================================
-  // Handle input changes
-  // ======================================
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -43,29 +37,24 @@ export default function SurveyForm() {
     } else {
       setForm({
         ...form,
-        [name]: value ?? ""   // ensure never null
+        [name]: value ?? "",
       });
     }
   };
 
-  // ======================================
-  // Handle form submission
-  // ======================================
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
-      await axios.post(`${API_BASE}/surveys/`, {
+      await API.post("/surveys/", {
         ...form,
-        liked_most: form.liked_most.join(", ") // send CSV string
+        liked_most: form.liked_most.join(", ")  // backend expects string
       });
 
       setMessage("✅ Survey submitted successfully!");
       setTimeout(() => navigate("/"), 2000);
     } catch (err) {
       console.error("Submission Error:", err);
-
-      if (err.response?.data) console.log("Backend Response:", err.response.data);
-
       setMessage("❌ Failed to submit survey.");
     }
   };
@@ -84,36 +73,24 @@ export default function SurveyForm() {
           <input name="city" value={form.city} placeholder="City *" onChange={handleChange} required />
           <input name="state" value={form.state} placeholder="State *" onChange={handleChange} required />
           <input name="zip" value={form.zip} placeholder="ZIP *" onChange={handleChange} required />
-          <input name="telephone" value={form.telephone} placeholder="Telephone Number *" onChange={handleChange} required />
-          <input name="email" value={form.email} type="email" placeholder="Email *" onChange={handleChange} required />
+          <input name="telephone" value={form.telephone} placeholder="Telephone *" onChange={handleChange} required />
+          <input name="email" type="email" value={form.email} placeholder="Email *" onChange={handleChange} required />
         </div>
 
         <label>Date of Survey *</label>
-        <input
-          type="date"
-          name="date_of_survey"
-          value={form.date_of_survey}
-          onChange={handleChange}
-          required
-        />
+        <input type="date" name="date_of_survey" value={form.date_of_survey} onChange={handleChange} required />
 
         <fieldset>
-          <legend>What did you like most about the campus?</legend>
+          <legend>What did you like most?</legend>
           {["Students", "Location", "Campus", "Atmosphere", "Dorm Rooms", "Sports"].map((v) => (
             <label key={v}>
-              <input
-                type="checkbox"
-                value={v}
-                checked={form.liked_most.includes(v)}
-                onChange={handleChange}
-              />{" "}
-              {v}
+              <input type="checkbox" value={v} checked={form.liked_most.includes(v)} onChange={handleChange} /> {v}
             </label>
           ))}
         </fieldset>
 
         <fieldset>
-          <legend>How did you become interested in the university?</legend>
+          <legend>How did you become interested?</legend>
           {["Friends", "Television", "Internet", "Other"].map((v) => (
             <label key={v}>
               <input
@@ -123,19 +100,13 @@ export default function SurveyForm() {
                 checked={form.became_interested === v}
                 onChange={handleChange}
                 required
-              />{" "}
-              {v}
+              /> {v}
             </label>
           ))}
         </fieldset>
 
-        <label>How likely are you to recommend this school?</label>
-        <select
-          name="likelihood"
-          value={form.likelihood}
-          onChange={handleChange}
-          required
-        >
+        <label>Recommend this school?</label>
+        <select name="likelihood" value={form.likelihood} onChange={handleChange} required>
           <option value="">Select</option>
           <option>Very Likely</option>
           <option>Likely</option>
@@ -143,13 +114,7 @@ export default function SurveyForm() {
         </select>
 
         <label>Additional Comments</label>
-        <textarea
-          name="comments"
-          rows="3"
-          value={form.comments}
-          onChange={handleChange}
-          placeholder="Your feedback..."
-        />
+        <textarea name="comments" rows="3" value={form.comments} onChange={handleChange} />
 
         <div className="buttons">
           <button type="submit" className="btn btn-green">Submit</button>
@@ -158,9 +123,7 @@ export default function SurveyForm() {
 
         {message && <div className="result">{message}</div>}
 
-        <button type="button" onClick={() => navigate("/")} className="back-btn">
-          ← Back to Home
-        </button>
+        <button type="button" onClick={() => navigate("/")} className="back-btn">← Back to Home</button>
       </form>
     </div>
   );

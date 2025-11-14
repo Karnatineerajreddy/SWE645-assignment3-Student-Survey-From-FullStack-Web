@@ -1,191 +1,82 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import "./SurveyForm.css";
+import { useNavigate } from "react-router-dom";
+import API from "../api";
+import "./SurveyList.css";
 
-export default function EditSurvey() {
-  const { id } = useParams();
+export default function SurveyList() {
+  const [surveys, setSurveys] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const API_BASE = "http://100.30.1.131:8000";
-
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    street_address: "",
-    city: "",
-    state: "",
-    zip: "",
-    telephone: "",
-    email: "",
-    date_of_survey: "",
-    liked_most: [],
-    became_interested: "",
-    likelihood: "",
-    comments: ""
-  });
-
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-
-  // ============================
-  // Load survey for editing
-  // ============================
   useEffect(() => {
-    async function fetchSurvey() {
+    async function load() {
       try {
-        const res = await axios.get(`${API_BASE}/surveys/${id}`);
-        const data = res.data;
-
-        setForm({
-          ...data,
-
-          // Fix: backend may return timestamp => convert to YYYY-MM-DD
-          date_of_survey: data.date_of_survey
-            ? data.date_of_survey.split("T")[0]
-            : "",
-
-          // Fix: ensure liked_most is ALWAYS an array
-          liked_most: Array.isArray(data.liked_most)
-            ? data.liked_most
-            : data.liked_most
-            ? data.liked_most.split(", ").map((x) => x.trim())
-            : [],
-        });
+        const res = await API.get("/surveys/");
+        setSurveys(res.data);
       } catch (err) {
-        console.error("Error loading survey:", err);
+        console.error("Load Error:", err);
       } finally {
         setLoading(false);
       }
     }
+    load();
+  }, []);
 
-    fetchSurvey();
-  }, [id]);
-
-  // ============================
-  // Handle input changes
-  // ============================
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    if (type === "checkbox") {
-      setForm((prev) => ({
-        ...prev,
-        liked_most: checked
-          ? [...prev.liked_most, value]
-          : prev.liked_most.filter((v) => v !== value),
-      }));
-    } else {
-      setForm({ ...form, [name]: value });
-    }
-  };
-
-  // ============================
-  // Submit update
-  // ============================
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const deleteSurvey = async (id) => {
+    if (!window.confirm("Delete this survey?")) return;
 
     try {
-      await axios.put(`${API_BASE}/surveys/${id}`, {
-        ...form,
-
-        // Fix: send CSV string instead of array
-        liked_most: form.liked_most.join(", "),
-      });
-
-      setMessage("✅ Survey updated successfully!");
-
-      setTimeout(() => navigate("/surveys"), 1500);
+      await API.delete(`/surveys/${id}`);
+      setSurveys((prev) => prev.filter((s) => s.id !== id));
     } catch (err) {
-      console.error("Update failed:", err);
-
-      if (err.response?.data) {
-        console.error("Backend says:", err.response.data);
-      }
-
-      setMessage("❌ Failed to update survey.");
+      console.error("Delete Error:", err);
     }
   };
 
-  if (loading) return <p>Loading survey...</p>;
+  if (loading) return <p>Loading surveys...</p>;
 
   return (
-    <div className="survey-container">
-      <div className="survey-header">
-        <h2>Edit Survey #{id}</h2>
+    <div className="survey-list-container">
+      <div className="survey-list-header">
+        <h2>📋 All Submitted Surveys</h2>
       </div>
 
-      <form className="survey-form" onSubmit={handleSubmit}>
-        <div className="grid">
-          <input name="first_name" value={form.first_name} placeholder="First Name" onChange={handleChange} required />
-          <input name="last_name" value={form.last_name} placeholder="Last Name" onChange={handleChange} required />
-          <input name="street_address" value={form.street_address} placeholder="Street Address" onChange={handleChange} required />
-          <input name="city" value={form.city} placeholder="City" onChange={handleChange} required />
-          <input name="state" value={form.state} placeholder="State" onChange={handleChange} required />
-          <input name="zip" value={form.zip} placeholder="ZIP" onChange={handleChange} required />
-          <input name="telephone" value={form.telephone} placeholder="Telephone Number" onChange={handleChange} required />
-          <input name="email" value={form.email} type="email" placeholder="Email" onChange={handleChange} required />
-        </div>
+      <table className="survey-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>City</th>
+            <th>State</th>
+            <th>Date</th>
+            <th>Liked Most</th>
+            <th>Interested By</th>
+            <th>Recommend</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
 
-        <label>Date of Survey *</label>
-        <input
-          type="date"
-          name="date_of_survey"
-          value={form.date_of_survey}
-          onChange={handleChange}
-          required
-        />
-
-        <fieldset>
-          <legend>What did you like most about the campus?</legend>
-          {["Students", "Location", "Campus", "Atmosphere", "Dorm Rooms", "Sports"].map((v) => (
-            <label key={v}>
-              <input
-                type="checkbox"
-                value={v}
-                checked={form.liked_most.includes(v)}
-                onChange={handleChange}
-              />
-              {v}
-            </label>
+        <tbody>
+          {surveys.map((s) => (
+            <tr key={s.id}>
+              <td>{s.id}</td>
+              <td>{s.first_name} {s.last_name}</td>
+              <td>{s.email}</td>
+              <td>{s.city}</td>
+              <td>{s.state}</td>
+              <td>{s.date_of_survey}</td>
+              <td>{s.liked_most}</td>
+              <td>{s.became_interested}</td>
+              <td>{s.likelihood}</td>
+              <td>
+                <button className="btn btn-edit" onClick={() => navigate(`/edit/${s.id}`)}>Edit</button>
+                <button className="btn btn-delete" onClick={() => deleteSurvey(s.id)}>Delete</button>
+              </td>
+            </tr>
           ))}
-        </fieldset>
-
-        <fieldset>
-          <legend>How did you become interested?</legend>
-          {["Friends", "Television", "Internet", "Other"].map((v) => (
-            <label key={v}>
-              <input
-                type="radio"
-                name="became_interested"
-                value={v}
-                checked={form.became_interested === v}
-                onChange={handleChange}
-              />{" "}
-              {v}
-            </label>
-          ))}
-        </fieldset>
-
-        <label>How likely to recommend?</label>
-        <select name="likelihood" value={form.likelihood} onChange={handleChange} required>
-          <option value="">Select</option>
-          <option>Very Likely</option>
-          <option>Likely</option>
-          <option>Unlikely</option>
-        </select>
-
-        <label>Comments</label>
-        <textarea name="comments" rows="3" value={form.comments} onChange={handleChange} />
-
-        <div className="buttons">
-          <button type="submit" className="btn btn-green">Save Changes</button>
-          <button type="button" className="btn btn-red" onClick={() => navigate("/surveys")}>Cancel</button>
-        </div>
-
-        {message && <div className="result">{message}</div>}
-      </form>
+        </tbody>
+      </table>
     </div>
   );
 }
