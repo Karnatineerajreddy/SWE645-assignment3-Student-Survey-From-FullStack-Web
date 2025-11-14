@@ -18,6 +18,8 @@ class SurveyBase(SQLModel):
     zip: str
     telephone: str
     email: str
+
+    # Optional fields
     date_of_survey: Optional[date] = None
     liked_most: Optional[str] = None
     became_interested: Optional[str] = None
@@ -31,18 +33,13 @@ class Survey(SurveyBase, table=True):
 
 app = FastAPI(title="Student Survey API")
 
-# ---- FIXED CORS ----
+# ---- CORS setup ----
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "*",  # allow all for simplicity
-        "http://100.30.1.131:3000",   # your frontend VM / deployed UI
-        "http://localhost:5173",      # local dev
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=["*"],  # Allow all for now
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 
@@ -56,8 +53,7 @@ def on_startup():
 @app.post("/surveys/", response_model=Survey)
 def create_survey(survey: Survey):
     with Session(engine) as session:
-
-        # Convert date string to Python date
+        # Convert "YYYY-MM-DD" string → date object
         if isinstance(survey.date_of_survey, str):
             try:
                 survey.date_of_survey = datetime.strptime(
@@ -66,7 +62,7 @@ def create_survey(survey: Survey):
             except ValueError:
                 survey.date_of_survey = date.today()
 
-        # Default to today's date
+        # Default current date if missing
         if not survey.date_of_survey:
             survey.date_of_survey = date.today()
 
@@ -98,8 +94,17 @@ def update_survey(survey_id: int, survey: Survey):
         if not existing:
             raise HTTPException(status_code=404, detail="Survey not found")
 
+        # Fix missing date during update
+        if isinstance(survey.date_of_survey, str):
+            try:
+                survey.date_of_survey = datetime.strptime(
+                    survey.date_of_survey, "%Y-%m-%d"
+                ).date()
+            except ValueError:
+                survey.date_of_survey = existing.date_of_survey or date.today()
+
         if not survey.date_of_survey:
-            survey.date_of_survey = date.today()
+            survey.date_of_survey = existing.date_of_survey or date.today()
 
         survey.id = survey_id
         session.merge(survey)
