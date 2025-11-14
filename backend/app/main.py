@@ -100,6 +100,27 @@ def delete_survey(survey_id: int):
         session.delete(record)
         session.commit()
         return {"deleted": survey_id}
+    
+@app.put("/surveys/{survey_id}", response_model=Survey)
+def update_survey(survey_id: int, updated: Survey):
+    """
+    Update a survey by ID.
+    """
+    with Session(engine) as session:
+        record = session.get(Survey, survey_id)
+        if not record:
+            raise HTTPException(404, "Survey not found")
+
+        update_data = updated.dict(exclude_unset=True)
+
+        for key, value in update_data.items():
+            setattr(record, key, value)
+
+        session.add(record)
+        session.commit()
+        session.refresh(record)
+        return record
+
 
 @app.get("/")
 def root():
