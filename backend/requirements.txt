@@ -1,4 +1,4 @@
 fastapi
 uvicorn[standard]
 sqlmodel
-pymysql
+pysqlite3-binary

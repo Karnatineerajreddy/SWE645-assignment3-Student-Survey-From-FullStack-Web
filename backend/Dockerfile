@@ -1,20 +1,26 @@
 # Use an official Python image
 FROM python:3.12-slim
 
-# Set working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# Copy requirements file first (for dependency caching)
+# Install required OS packages for SQLite
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements file
 COPY requirements.txt .
 
-# Install dependencies
+# Install python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the backend code
+# Copy backend source code
 COPY . .
 
 # Expose FastAPI port
 EXPOSE 8000
 
-# Run the app
+# Start FastAPI
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
