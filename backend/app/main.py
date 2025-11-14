@@ -31,6 +31,21 @@ class SurveyBase(SQLModel):
 class Survey(SurveyBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
+class SurveyUpdate(SQLModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    street_address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip: Optional[str] = None
+    telephone: Optional[str] = None
+    email: Optional[str] = None
+    date_of_survey: Optional[date] = None
+    liked_most: Optional[str] = None
+    became_interested: Optional[str] = None
+    likelihood: Optional[str] = None
+    comments: Optional[str] = None
+
 
 # -----------------------------
 # App Setup
@@ -101,23 +116,29 @@ def delete_survey(survey_id: int):
         session.commit()
         return {"deleted": survey_id}
     
-@app.put("/surveys/{survey_id}", response_model=Survey)
-def update_survey(survey_id: int, updated: SurveyUpdate):
+@app.post("/surveys/", response_model=Survey)
+def create_survey(survey: SurveyBase):
     with Session(engine) as session:
-        record = session.get(Survey, survey_id)
+        
+        # Convert to full Survey model
+        db_survey = Survey(**survey.dict())
 
-        if not record:
-            raise HTTPException(status_code=404, detail="Survey not found")
+        # Parse or correct date field
+        if isinstance(db_survey.date_of_survey, str):
+            try:
+                db_survey.date_of_survey = datetime.strptime(
+                    db_survey.date_of_survey, "%Y-%m-%d"
+                ).date()
+            except:
+                db_survey.date_of_survey = date.today()
 
-        update_data = updated.dict(exclude_unset=True)   # <-- IMPORTANT
+        if not db_survey.date_of_survey:
+            db_survey.date_of_survey = date.today()
 
-        for key, value in update_data.items():
-            setattr(record, key, value)
-
-        session.add(record)
+        session.add(db_survey)
         session.commit()
-        session.refresh(record)
-        return record
+        session.refresh(db_survey)
+        return db_survey
 
 
 
