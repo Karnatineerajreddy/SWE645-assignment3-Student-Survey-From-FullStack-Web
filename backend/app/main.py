@@ -1,15 +1,18 @@
-# app/main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select, create_engine, Field
 from typing import Optional, List
 from datetime import datetime, date
 
+# -----------------------------
+# Database Setup
+# -----------------------------
 DATABASE_URL = "sqlite:///./surveys.db"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
+
 # -----------------------------
-# Database Models
+# Models
 # -----------------------------
 class SurveyBase(SQLModel):
     first_name: str
@@ -30,6 +33,7 @@ class SurveyBase(SQLModel):
 
 class Survey(SurveyBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+
 
 class SurveyUpdate(SQLModel):
     first_name: Optional[str] = None
@@ -52,9 +56,9 @@ class SurveyUpdate(SQLModel):
 # -----------------------------
 app = FastAPI(title="Student Survey API")
 
-# FIXED CORS for Kubernetes frontend
 allowed_origins = [
-    "http://100.30.1.131:31000",   # frontend NodePort
+    "http://100.30.1.131:31000",   # React frontend (NodePort)
+    "*",  # optionally allow all (you can remove this in production)
 ]
 
 app.add_middleware(
@@ -65,81 +69,93 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
+
+
+# -----------------------------
+# Helper for date parsing
+# -----------------------------
+def parse_date(value):
+    if isinstance(value, date):
+        return value
+
+    if isinstance(value, str):
+        try:
+            return datetime.strptime(value, "%Y-%m-%d").date()
+        except:
+            return date.today()
+
+    return date.today()
+
 
 # -----------------------------
 # Routes
 # -----------------------------
 @app.post("/surveys/", response_model=Survey)
-def create_survey(survey: Survey):
-    with Session(engine) as session:
-        # Parse or correct date field
-        if isinstance(survey.date_of_survey, str):
-            try:
-                survey.date_of_survey = datetime.strptime(
-                    survey.date_of_survey, "%Y-%m-%d"
-                ).date()
-            except:
-                survey.date_of_survey = date.today()
-
-        if not survey.date_of_survey:
-            survey.date_of_survey = date.today()
-
-        session.add(survey)
-        session.commit()
-        session.refresh(survey)
-        return survey
-
-@app.get("/surveys/", response_model=List[Survey])
-def get_surveys():
-    with Session(engine) as session:
-        return session.exec(select(Survey)).all()
-
-@app.get("/surveys/{survey_id}", response_model=Survey)
-def get_one(survey_id: int):
-    with Session(engine) as session:
-        record = session.get(Survey, survey_id)
-        if not record:
-            raise HTTPException(404, "Survey not found")
-        return record
-
-@app.delete("/surveys/{survey_id}")
-def delete_survey(survey_id: int):
-    with Session(engine) as session:
-        record = session.get(Survey, survey_id)
-        if not record:
-            raise HTTPException(404, "Survey not found")
-
-        session.delete(record)
-        session.commit()
-        return {"deleted": survey_id}
-    
-@app.post("/surveys/", response_model=Survey)
 def create_survey(survey: SurveyBase):
     with Session(engine) as session:
-        
-        # Convert to full Survey model
+
         db_survey = Survey(**survey.dict())
 
-        # Parse or correct date field
-        if isinstance(db_survey.date_of_survey, str):
-            try:
-                db_survey.date_of_survey = datetime.strptime(
-                    db_survey.date_of_survey, "%Y-%m-%d"
-                ).date()
-            except:
-                db_survey.date_of_survey = date.today()
-
-        if not db_survey.date_of_survey:
-            db_survey.date_of_survey = date.today()
+        # Standardize date_of_survey
+        db_survey.date_of_survey = parse_date(db_survey.date_of_survey)
 
         session.add(db_survey)
         session.commit()
         session.refresh(db_survey)
         return db_survey
 
+
+@app.get("/surveys/", response_model=List[Survey])
+def get_surveys():
+    with Session(engine) as session:
+        return session.exec(select(Survey)).all()
+
+
+@app.get("/surveys/{survey_id}", response_model=Survey)
+def get_survey(survey_id: int):
+    with Session(engine) as session:
+        survey = session.get(Survey, survey_id)
+        if not survey:
+            raise HTTPException(404, "Survey not found")
+        return survey
+
+
+@app.put("/surveys/{survey_id}", response_model=Survey)
+def update_survey(survey_id: int, updated: SurveyUpdate):
+    with Session(engine) as session:
+        survey = session.get(Survey, survey_id)
+        if not survey:
+            raise HTTPException(404, "Survey not found")
+
+        update_data = updated.dict(exclude_unset=True)
+
+        # Fix date for update
+        if "date_of_survey" in update_data:
+            update_data["date_of_survey"] = parse_date(update_data["date_of_survey"])
+
+        for key, value in update_data.items():
+            setattr(survey, key, value)
+
+        session.add(survey)
+        session.commit()
+        session.refresh(survey)
+        return survey
+
+
+@app.delete("/surveys/{survey_id}")
+def delete_survey(survey_id: int):
+    with Session(engine) as session:
+        survey = session.get(Survey, survey_id)
+        if not survey:
+            raise HTTPException(404, "Survey not found")
+
+        session.delete(survey)
+        session.commit()
+        return {"deleted": survey_id}
 
 
 @app.get("/")
