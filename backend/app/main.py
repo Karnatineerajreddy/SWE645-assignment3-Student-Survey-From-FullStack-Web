@@ -5,10 +5,9 @@ from typing import Optional, List
 from datetime import datetime, date
 
 # -----------------------------
-# Database Setup (PostgreSQL via RDS)
+# Database Setup (SQLModel + PostgreSQL)
 # -----------------------------
-from app.database import Base, engine, SessionLocal, Survey
-
+from app.database import engine
 
 # -----------------------------
 # Models
@@ -55,13 +54,9 @@ class SurveyUpdate(SQLModel):
 # -----------------------------
 app = FastAPI(title="Student Survey API")
 
-allowed_origins = [
-    "*",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
