@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";  // 👈 ADD THIS
 import API from "../api.js";
 import "./SurveyList.css";
 
@@ -7,6 +7,7 @@ export default function SurveyList() {
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();    // 👈 detects page navigation
 
   useEffect(() => {
     async function load() {
@@ -20,7 +21,7 @@ export default function SurveyList() {
       }
     }
     load();
-  }, []);
+  }, [location]);   // 👈 REFRESH LIST EVERY TIME YOU NAVIGATE HERE
 
   const deleteSurvey = async (id) => {
     if (!window.confirm("Delete this survey?")) return;
