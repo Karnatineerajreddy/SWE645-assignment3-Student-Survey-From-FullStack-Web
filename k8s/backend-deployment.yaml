@@ -20,8 +20,16 @@ spec:
         ports:
         - containerPort: 8000
         env:
-        - name: DATABASE_URL
-          value: "sqlite:///./surveys.db"
+        - name: DB_HOST
+          value: "100.30.1.131"        
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: "survey_user"
+        - name: DB_PASSWORD
+          value: "Surajneeraj1"     # ❗ FIXED (no space)
+        - name: DB_NAME
+          value: "survey"
         readinessProbe:
           httpGet:
             path: /
