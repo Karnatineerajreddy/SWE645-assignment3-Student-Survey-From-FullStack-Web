@@ -4,9 +4,7 @@ from sqlmodel import SQLModel, Session, select, Field
 from typing import Optional, List
 from datetime import datetime, date
 
-# -----------------------------
-# Database Setup (SQLModel + PostgreSQL)
-# -----------------------------
+# Database engine (sqlite)
 from app.database import engine
 
 # -----------------------------
@@ -65,6 +63,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
+    # create tables if not present
     SQLModel.metadata.create_all(engine)
 
 
@@ -149,4 +148,4 @@ def delete_survey(survey_id: int):
 
 @app.get("/")
 def root():
-    return {"message": "Survey API running with PostgreSQL!"}
+    return {"message": "Survey API running with SQLite!"}

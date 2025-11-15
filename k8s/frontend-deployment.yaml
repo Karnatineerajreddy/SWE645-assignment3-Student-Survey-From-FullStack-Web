@@ -20,3 +20,6 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 80
+        env:
+        - name: API_URL
+          value: "http://survey-backend:8000"

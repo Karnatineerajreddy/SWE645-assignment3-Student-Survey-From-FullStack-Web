@@ -17,8 +17,12 @@ spec:
       containers:
       - name: backend
         image: neerajreddy22/swe645-backend:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
+        env:
+        - name: DB_PATH
+          value: "/data/survey.db"
         readinessProbe:
           httpGet:
             path: /
@@ -31,3 +35,10 @@ spec:
             port: 8000
           initialDelaySeconds: 20
           periodSeconds: 30
+        volumeMounts:
+        - name: survey-data
+          mountPath: /data
+      volumes:
+      - name: survey-data
+        persistentVolumeClaim:
+          claimName: survey-pvc
