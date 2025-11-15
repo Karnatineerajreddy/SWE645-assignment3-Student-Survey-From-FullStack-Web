@@ -18,6 +18,13 @@ spec:
         imagePullPolicy: Always
         env:
         - name: DB_PATH
-          value: "/tmp/survey.db"
+          value: "/data/survey.db"
         ports:
         - containerPort: 8000
+        volumeMounts:
+        - name: survey-data
+          mountPath: /data
+      volumes:
+      - name: survey-data
+        persistentVolumeClaim:
+          claimName: survey-pvc
