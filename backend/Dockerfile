@@ -4,10 +4,11 @@ FROM python:3.12-slim
 # Set working directory
 WORKDIR /app
 
-# Install required OS packages for SQLite
+# Install required OS packages for psycopg2
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libsqlite3-dev \
+    libpq-dev \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
