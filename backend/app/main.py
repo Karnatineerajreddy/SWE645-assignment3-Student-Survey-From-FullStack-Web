@@ -3,13 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import SQLModel, Session, select, Field
 from typing import Optional, List
 from datetime import datetime, date
-
-# Database engine (sqlite)
 from app.database import engine
 
-# -----------------------------
-# Models
-# -----------------------------
 class SurveyBase(SQLModel):
     first_name: str
     last_name: str
@@ -19,17 +14,14 @@ class SurveyBase(SQLModel):
     zip: str
     telephone: str
     email: str
-
     date_of_survey: Optional[date] = None
     liked_most: Optional[str] = None
     became_interested: Optional[str] = None
     likelihood: Optional[str] = None
     comments: Optional[str] = None
 
-
 class Survey(SurveyBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-
 
 class SurveyUpdate(SQLModel):
     first_name: Optional[str] = None
@@ -46,11 +38,7 @@ class SurveyUpdate(SQLModel):
     likelihood: Optional[str] = None
     comments: Optional[str] = None
 
-
-# -----------------------------
-# App Setup
-# -----------------------------
-app = FastAPI(title="Student Survey API")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,91 +48,68 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 @app.on_event("startup")
 def on_startup():
-    # create tables if not present
     SQLModel.metadata.create_all(engine)
 
-
-# -----------------------------
-# Helper for date parsing
-# -----------------------------
 def parse_date(value):
     if isinstance(value, date):
         return value
-
     if isinstance(value, str):
         try:
             return datetime.strptime(value, "%Y-%m-%d").date()
         except:
             return date.today()
-
     return date.today()
 
-
-# -----------------------------
-# Routes
-# -----------------------------
-@app.post("/surveys/", response_model=Survey)
+@app.post("/surveys/")
 def create_survey(survey: SurveyBase):
     with Session(engine) as session:
-        db_survey = Survey(**survey.dict())
-        db_survey.date_of_survey = parse_date(db_survey.date_of_survey)
-
-        session.add(db_survey)
+        db = Survey(**survey.dict())
+        db.date_of_survey = parse_date(db.date_of_survey)
+        session.add(db)
         session.commit()
-        session.refresh(db_survey)
-        return db_survey
+        session.refresh(db)
+        return db
 
-
-@app.get("/surveys/", response_model=List[Survey])
+@app.get("/surveys/")
 def get_surveys():
     with Session(engine) as session:
         return session.exec(select(Survey)).all()
 
-
-@app.get("/surveys/{survey_id}", response_model=Survey)
-def get_survey(survey_id: int):
+@app.get("/surveys/{id}")
+def get_survey(id: int):
     with Session(engine) as session:
-        survey = session.get(Survey, survey_id)
-        if not survey:
+        s = session.get(Survey, id)
+        if not s:
             raise HTTPException(404, "Survey not found")
-        return survey
+        return s
 
-
-@app.put("/surveys/{survey_id}", response_model=Survey)
-def update_survey(survey_id: int, updated: SurveyUpdate):
+@app.put("/surveys/{id}")
+def update_survey(id: int, updated: SurveyUpdate):
     with Session(engine) as session:
-        survey = session.get(Survey, survey_id)
-        if not survey:
+        s = session.get(Survey, id)
+        if not s:
             raise HTTPException(404, "Survey not found")
-
-        update_data = updated.dict(exclude_unset=True)
-
-        if "date_of_survey" in update_data:
-            update_data["date_of_survey"] = parse_date(update_data["date_of_survey"])
-
-        for key, value in update_data.items():
-            setattr(survey, key, value)
-
-        session.add(survey)
+        data = updated.dict(exclude_unset=True)
+        if "date_of_survey" in data:
+            data["date_of_survey"] = parse_date(data["date_of_survey"])
+        for k, v in data.items():
+            setattr(s, k, v)
+        session.add(s)
         session.commit()
-        session.refresh(survey)
-        return survey
+        session.refresh(s)
+        return s
 
-
-@app.delete("/surveys/{survey_id}")
-def delete_survey(survey_id: int):
+@app.delete("/surveys/{id}")
+def delete_survey(id: int):
     with Session(engine) as session:
-        survey = session.get(Survey, survey_id)
-        if not survey:
+        s = session.get(Survey, id)
+        if not s:
             raise HTTPException(404, "Survey not found")
-
-        session.delete(survey)
+        session.delete(s)
         session.commit()
-        return {"deleted": survey_id}
-
+        return {"deleted": id}
 
 @app.get("/")
 def root():
