@@ -7,7 +7,7 @@ from datetime import datetime, date
 # -----------------------------
 # Database Setup (PostgreSQL via RDS)
 # -----------------------------
-from database import engine
+from app.database import Base, engine, SessionLocal, Survey
 
 
 # -----------------------------
