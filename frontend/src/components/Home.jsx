@@ -26,7 +26,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="home-footer">
-        <p>Developed for SWE 645 - Full Stack Application Deployment</p>
+        <p>Developed for SWE 645 - Assignment 3</p>
         <p>© 2025 Neeraj Reddy Karnati & Abhinav Reddy Telkala</p>
       </footer>
     </div>
